@@ -1,0 +1,88 @@
+a. Folosind 2 leduri stinse (restul toate sunt aprinse), mutati-le stanga->dreapta, iar cand ajung in capat shitatile afara pana ce toate ledurile sunt aprinse (Ex. 6 leduri: 001111, 100111, 110011, 111001, 111100, 111110, 111111), pentru secventa de leduri [13, 12, 11, 10]. Miscarea va avea loc intr-un timp total T = 4 secunde
+
+int pins[]={13,12,11,10,9,8};
+int i=0;
+int j=1;
+unsigned long start = millis(); 
+
+void setup() {
+  for (int i = 0; i <6; i++){
+    pinMode(pins[i], OUTPUT);
+    digitalWrite(pins[i], HIGH);
+  }
+  
+
+}
+
+void loop() {
+  
+while(i<=6 && j<=7) 
+{
+    digitalWrite(pins[i], LOW);
+    digitalWrite(pins[j], LOW);
+  i++;j++;
+delay(1000);
+  for (int i = 0; i <6; i++){    
+    digitalWrite(pins[i], HIGH);
+}
+  }
+
+}
+----------------------------------------------------------
+b. Creati un efect de fade-out (stingere progresiva) pentru secventa de leduri [9, 8](toate ledurile simultan). Efectul de fade va avea loc intr-un timp total T = 0.1 secunde
+
+int pins[]={13,12,11,10,9,8};
+int brightness = 260;
+unsigned long start = millis();  
+
+void setup() {
+  for (int i = 4; i < 6; i++){
+    pinMode(pins[i], OUTPUT);
+    analogWrite(pins[i],brightness);
+  }
+
+}
+
+void loop() {
+
+
+  unsigned long current = millis();
+  if(current - start >= 100)
+  while(brightness>0)
+  {
+    analogWrite(pins[5],brightness);
+    analogWrite(pins[4],brightness);
+    brightness -= 26;
+    start = current;
+  }
+  
+}
+--------------------------------------------------------------
+c. Numarati descrescator de la toate ledurile aprinse la toate stinse (Ex. 6 leduri: 111111, 111110, 111101, 111100, ...) pentru secventa de leduri [13, 12, 11, 10, 9, 8]. Miscarea va avea loc intr-un timp total T = 3 secunde
+
+void setup() {
+    for (int i = 8; i <= 13; i++) {
+        pinMode(i, OUTPUT);
+    }
+}
+
+int n = 63;
+
+void loop() {
+    if (n >= 0) {
+        int cop_n = n;
+        int m = 0;
+        while (cop_n > 0) {
+            if (cop_n % 2 == 1) {
+                digitalWrite(m + 8, HIGH);
+            } else {
+                digitalWrite(m + 8, LOW);
+            }
+            m++;
+            cop_n = cop_n / 2;
+        }
+        n--;
+        delay(50);
+    }
+}
+

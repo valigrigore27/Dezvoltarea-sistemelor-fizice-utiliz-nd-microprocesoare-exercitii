@@ -1,0 +1,86 @@
+#define CLK 13
+#define DIN 11
+#define CS  10
+#define X_SEGMENTS   4
+#define Y_SEGMENTS   2
+#define NUM_SEGMENTS (X_SEGMENTS * Y_SEGMENTS)
+
+#define BUTTON_RIGHT 2
+#define BUTTON_UP    3
+#define BUTTON_DOWN  4
+#define BUTTON_LEFT  5
+
+
+byte fb[8 * NUM_SEGMENTS];
+int currentX = X_SEGMENTS - 1;
+int currentY = Y_SEGMENTS - 1;
+
+void shiftAll(byte send_to_address, byte send_this_data) {
+  digitalWrite(CS, LOW);
+  for (int i = 0; i < NUM_SEGMENTS; i++) {
+    shiftOut(DIN, CLK, MSBFIRST, send_to_address);
+    shiftOut(DIN, CLK, MSBFIRST, send_this_data);
+  }
+  digitalWrite(CS, HIGH);
+}
+
+void setup() {
+  Serial.begin(115200);
+  pinMode(CLK, OUTPUT);
+  pinMode(DIN, OUTPUT);
+  pinMode(CS, OUTPUT);
+
+  shiftAll(0x0f, 0x00);
+  shiftAll(0x0b, 0x07);
+  shiftAll(0x0c, 0x01);
+  shiftAll(0x0a, 0x0f);
+  shiftAll(0x09, 0x00);
+
+  pinMode(BUTTON_RIGHT, INPUT);
+  pinMode(BUTTON_UP, INPUT);
+  pinMode(BUTTON_DOWN, INPUT);
+  pinMode(BUTTON_LEFT, INPUT);
+}
+
+void show() {
+  for (byte row = 0; row < 8; row++) {
+    digitalWrite(CS, LOW);
+    byte segment = NUM_SEGMENTS;
+    while (segment--) {
+      byte x = segment % X_SEGMENTS;
+      byte y = segment / X_SEGMENTS * 8;
+      byte addr = (row + y) * X_SEGMENTS;
+
+      if (segment & X_SEGMENTS) {
+        shiftOut(DIN, CLK, MSBFIRST, 8 - row);
+        shiftOut(DIN, CLK, LSBFIRST, fb[addr + x]);
+      } else {
+        shiftOut(DIN, CLK, MSBFIRST, 1 + row);
+        shiftOut(DIN, CLK, MSBFIRST, fb[addr - x + X_SEGMENTS - 1]);
+      }
+    }
+    digitalWrite(CS, HIGH);
+  }
+}
+
+void loop() {
+  for (int i = 0; i < 64; i++) fb[i] = 0;
+
+  fb[currentY * X_SEGMENTS + currentX] = 1;
+
+  show();
+
+
+   // Controlul manual al LED-ului cu butoane virtuale
+  if (digitalRead(BUTTON_RIGHT) == HIGH) {
+    currentX = min(currentX + 1, X_SEGMENTS - 1);
+  } else if (digitalRead(BUTTON_UP) == HIGH) {
+    currentY = max(currentY - 1, 0);
+  } else if (digitalRead(BUTTON_DOWN) == HIGH) {
+    currentY = min(currentY + 1, Y_SEGMENTS - 1);
+  } else if (digitalRead(BUTTON_LEFT) == HIGH) {
+    currentX = max(currentX - 1, 0);
+  }
+
+  delay(10);
+}
